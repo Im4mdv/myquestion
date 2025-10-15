@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>im4mdv — Link Bio</title>
+  <style>
+    :root{--bg:#0b0b0d;--card:#111214;--muted:#9aa0a6;--accent:#c56cff}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;
+         background:linear-gradient(180deg,#050507 0%, #0b0b0d 100%);
+         color:#fff;min-height:100vh;display:flex;align-items:center;
+         justify-content:center;padding:24px}
+    .wrap{width:100%;max-width:760px}
+    .card{background:var(--card);border-radius:14px;padding:28px;
+          box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+    .head{display:flex;gap:16px;align-items:center}
+    .avatar img{width:84px;height:84px;border-radius:14px;object-fit:cover}
+    h1{margin:0;font-size:20px}
+    p.tag{margin:6px 0 0;color:var(--muted)}
+    .btns{display:flex;flex-direction:column;gap:12px;margin-top:18px}
+    .btn{display:flex;align-items:center;gap:12px;padding:12px 14px;
+         background:transparent;border:1px solid rgba(255,255,255,0.06);
+         border-radius:10px;color:#fff;text-decoration:none;cursor:pointer}
+    .btn small{color:var(--muted);font-size:13px;margin-left:auto}
+    .btn:hover{border-color:rgba(197,108,255,0.2);transform:translateY(-3px)}
+    .music{margin-top:18px;border:1px solid rgba(255,255,255,0.05);
+           border-radius:12px;padding:16px;text-align:center}
+    .note{color:var(--muted);font-size:13px;margin-top:12px}
+    .footer{margin-top:18px;color:var(--muted);font-size:13px;text-align:center}
+    input,textarea{width:100%;padding:10px;border-radius:8px;
+                   background:#060607;border:1px solid rgba(255,255,255,0.05);
+                   color:#fff}
+    .modal{position:fixed;inset:0;display:flex;align-items:center;
+           justify-content:center;background:rgba(0,0,0,0.6);
+           visibility:hidden;opacity:0;transition:0.18s}
+    .modal.show{visibility:visible;opacity:1}
+    .panel{background:#0b0b0d;padding:16px;border-radius:10px;
+           width:90%;max-width:520px;border:1px solid rgba(255,255,255,0.04)}
+    .tiny{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="head">
+        <div class="avatar">
+          <img src="https://i.imgur.com/d84ZP5t.jpeg" alt="im4mdv">
+        </div>
+        <div>
+          <h1>im4mdv</h1>
+          <p class="tag">sharing vibes & question ☁️</p>
+        </div>
+      </div>
+
+      <div class="btns">
+        <a class="btn" href="https://www.tiktok.com/@koplingterus" target="_blank">
+          🎵 TikTok<small>@koplingterus</small></a>
+        <a class="btn" href="https://open.spotify.com/track/62uFpaQKuXb" target="_blank">
+          🎧 Spotify<small>spotify.link/62uFpaQKuXb</small></a>
+        <button class="btn" id="openAsk">✉️ Tanyakan sesuatu kepadaku</button>
+      </div>
+
+      <!-- area kirim foto -->
+      <div class="music">
+        <h3>🖼️ Kirim Foto imoettt dong</h3>
+        <p class="note">Unggah foto yang akan dikirim📬</p>
+        <input type="file" id="photoInput" accept="image/*">
+        <textarea id="caption" rows="2" placeholder="Tulis pesan ya!"></textarea>
+        <button class="btn" id="sendPhoto" style="margin-top:8px;">Kirim Foto</button>
+        <div id="status" class="note"></div>
+      </div>
+
+      <div class="footer">Made with ❤️ — im4mdv.bio</div>
+    </div>
+  </div>
+
+  <!-- Modal Form -->
+  <div class="modal" id="modal">
+    <div class="panel">
+      <h3>📮 Kirim pertanyaan</h3>
+      <p class="tiny">Mau bertanya tentang aku?.</p>
+      <input id="qname" placeholder="Nama (opsional)" />
+      <textarea id="qtext" rows="4" placeholder="Tulis pertanyaan kamu..." required></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="sendQ" class="btn">Kirim</button>
+        <button id="closeQ" class="btn">Batal</button>
+      </div>
+      <div id="qmsg" class="tiny" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <script>
+    const BOT_TOKEN = "8317170535:AAGh0PBKO4T-HkZQ4b7COREqLWcOIjW3QTY";
+    const CHAT_ID   = "6864694275";
+
+    /* --- Modal pertanyaan --- */
+    const modal=document.getElementById('modal');
+    document.getElementById('openAsk').onclick=()=>modal.classList.add('show');
+    document.getElementById('closeQ').onclick=()=>modal.classList.remove('show');
+    const qname=document.getElementById('qname'),
+          qtext=document.getElementById('qtext'),
+          qmsg=document.getElementById('qmsg');
+    document.getElementById('sendQ').onclick=async()=>{
+      const name=qname.value.trim()||"Anonim",text=qtext.value.trim();
+      if(!text){qmsg.textContent="Isi pertanyaan dulu.";return;}
+      qmsg.textContent="Mengirim ...";
+      try{
+        const res=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+          {method:"POST",headers:{"Content-Type":"application/json"},
+           body:JSON.stringify({chat_id:CHAT_ID,
+                                text:`📩 Pesan baru dari Link Bio\n👤 ${name}\n💬 ${text}`})});
+        if(res.ok){qmsg.textContent="✅ Terkirim ke Telegram!";
+          qname.value='';qtext.value='';setTimeout(()=>modal.classList.remove('show'),1000);}
+        else qmsg.textContent="❌ Token atau Chat ID salah.";
+      }catch(e){qmsg.textContent="⚠️ cek koneksi.";}
+    };
+
+    /* --- Kirim foto publik --- */
+    const photoInput=document.getElementById("photoInput"),
+          caption=document.getElementById("caption"),
+          statusEl=document.getElementById("status");
+    document.getElementById("sendPhoto").onclick=async()=>{
+      const file=photoInput.files[0];
+      if(!file){statusEl.textContent="Pilih foto dulu ya📷";return;}
+      const formData=new FormData();
+      formData.append("chat_id",CHAT_ID);
+      formData.append("caption",caption.value||"Kirim foto dongg");
+      formData.append("photo",file);
+      statusEl.textContent="Mengirim foto ...";
+      try{
+        const res=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`,
+          {method:"POST",body:formData});
+        statusEl.textContent=res.ok?"✅ Foto berhasil dikirim!":"❌ Gagal kirim foto.";
+        if(res.ok){photoInput.value="";caption.value="";}
+      }catch(e){statusEl.textContent="⚠️ Cek Koneksi .";}
+    };
+  </script>
+</body>
+</html>
