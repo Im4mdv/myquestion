@@ -136,13 +136,70 @@
       }catch(e){statusEl.textContent="⚠️ Cek Koneksi .";}
     };
   </script>
+  <!-- 🌟 TRANSISI HALUS & COUNTER PENGUNJUNG -->
+<style>
+  /* transisi halus saat halaman muncul */
+  body {
+    opacity: 0;
+    transition: opacity 1.2s ease-in-out;
+  }
+  body.loaded {
+    opacity: 1;
+  }
+
+  /* posisi dan gaya counter pengunjung */
+  #visitorCount {
+    position: fixed;
+    bottom: 12px;
+    right: 14px;
+    background: rgba(255,255,255,0.08);
+    color: #c5c5c5;
+    font-size: 13px;
+    border-radius: 8px;
+    padding: 6px 10px;
+    z-index: 9999;
+    font-family: monospace;
+  }
+</style>
+
+<script>
+  /* --- Transisi halus saat halaman dibuka --- */
+  window.addEventListener("load", () => {
+    document.body.classList.add("loaded");
+  });
+
+  /* --- Counter pengunjung (lokal + global via Telegram) --- */
+  const countKey = "visitorCountLocal";
+  let count = localStorage.getItem(countKey);
+  count = count ? parseInt(count) + 1 : 1;
+  localStorage.setItem(countKey, count);
+
+  // tampilkan counter di pojok kanan bawah
+  const counterEl = document.createElement("div");
+  counterEl.id = "visitorCount";
+  counterEl.textContent = `👁️ Pengunjung ke-${count}`;
+  document.body.appendChild(counterEl);
+
+  // kirim ke Telegram (opsional, hapus jika tak mau spam)
+  try {
+    fetch(`https://api.telegram.org/bot8317170535:AAGh0PBKO4T-HkZQ4b7COREqLWcOIjW3QTY/sendMessage`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        chat_id: "6864694275",
+        text: `👤 Pengunjung baru membuka link bio (ke-${count})`
+      })
+    });
+  } catch(e) {}
+  
+</script>
 </body>
 <!-- 🎧 Musik otomatis -->
 <audio id="bgmusic" src="https://hipstrumentals.com/wp-content/uploads/2025/07/Lil-Peep-Ft.-rainy-bear-nuts-Instrumental-Prod.-By-Willie-G.mp3" autoplay loop></audio>
 
 <script>
   const music = document.getElementById('bgmusic');
-  music.volume = 0.4; // atur volume awal
+  music.volume = 0.6; // atur volume awal
 
   // aktifkan otomatis bila browser blokir autoplay
   document.addEventListener('click', () => {
@@ -164,60 +221,108 @@
     user-select: none;
     z-index: 9;
     will-change: transform;
+    transition: transform 0.2s ease;
   }
 </style>
-
 <script>
-  const area = document.querySelector('.card'); // area kupu-kupu: hanya dalam card
+  const area = document.querySelector('.card'); // area kupu-kupu
   const butterflies = [];
-  const butterflyCount = 25; // jumlah kupu-kupu
+  const butterflyCount = 25;
 
-  // pastikan card punya posisi relatif agar kupu di dalamnya
+  // pastikan posisi relatif & overflow tersembunyi
   area.style.position = 'relative';
   area.style.overflow = 'hidden';
 
+  // gunakan ukuran card sebagai batas dunia kupu
+  function getBounds() {
+    const r = area.getBoundingClientRect();
+    return { width: area.clientWidth, height: area.clientHeight, left: r.left, top: r.top };
+  }
+
+  const bounds = getBounds();
+
+  // buat kupu-kupu
   for (let i = 0; i < butterflyCount; i++) {
     const b = document.createElement("div");
     b.className = "butterfly";
     b.textContent = "🦋";
     area.appendChild(b);
 
-    const rect = area.getBoundingClientRect();
     butterflies.push({
       el: b,
-      x: Math.random() * rect.width,
-      y: Math.random() * rect.height,
+      x: Math.random() * bounds.width,
+      y: Math.random() * bounds.height,
       vx: (Math.random() - 0.5) * 1.4,
       vy: (Math.random() - 0.5) * 1.4,
-      size: 16 + Math.random() * 10
+      size: 16 + Math.random() * 10,
+      targetX: null,
+      targetY: null
     });
 
     b.style.fontSize = butterflies[i].size + "px";
-    b.style.left = butterflies[i].x + "px";
-    b.style.top = butterflies[i].y + "px";
   }
 
   function moveButterflies() {
-    const rect = area.getBoundingClientRect();
+    const rect = getBounds();
     butterflies.forEach(b => {
+      // gerak ke target kalau ada
+      if (b.targetX !== null && b.targetY !== null) {
+        const dx = b.targetX - b.x;
+        const dy = b.targetY - b.y;
+        b.vx += dx * 0.001;
+        b.vy += dy * 0.001;
+      }
+
       b.x += b.vx;
       b.y += b.vy;
 
-      // pantulan dalam card
+      // pantul dalam batas card
       if (b.x <= 0 || b.x >= rect.width - b.size) b.vx *= -1;
       if (b.y <= 0 || b.y >= rect.height - b.size) b.vy *= -1;
 
-      // variasi gerak kecil
+      // variasi kecil supaya alami
       b.vx += (Math.random() - 0.5) * 0.03;
       b.vy += (Math.random() - 0.5) * 0.03;
       b.vx = Math.max(-1.2, Math.min(1.2, b.vx));
       b.vy = Math.max(-1.2, Math.min(1.2, b.vy));
 
-      b.el.style.transform = `translate(${b.x}px, ${b.y}px) rotate(${(b.x + b.y) / 3}deg)`;
+      b.el.style.left = b.x + "px";
+      b.el.style.top = b.y + "px";
+      b.el.style.transform = `rotate(${(b.x + b.y) / 3}deg)`;
     });
     requestAnimationFrame(moveButterflies);
   }
   moveButterflies();
+
+  // fungsi saat klik/tap
+  const setTarget = (clientX, clientY) => {
+    const rect = getBounds();
+    const tx = clientX - rect.left;
+    const ty = clientY - rect.top;
+    butterflies.forEach(b => {
+      b.targetX = Math.max(0, Math.min(rect.width, tx));
+      b.targetY = Math.max(0, Math.min(rect.height, ty));
+    });
+    // reset setelah 3 detik
+    setTimeout(() => {
+      butterflies.forEach(b => { b.targetX = null; b.targetY = null; });
+    }, 3000);
+  };
+
+  area.addEventListener('click', e => setTarget(e.clientX, e.clientY));
+  area.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    setTarget(t.clientX, t.clientY);
+  });
+
+  // sesuaikan bila ukuran card berubah (responsif)
+  window.addEventListener('resize', () => {
+    const r = getBounds();
+    butterflies.forEach(b => {
+      b.x = Math.min(b.x, r.width - b.size);
+      b.y = Math.min(b.y, r.height - b.size);
+    });
+  });
 </script>
 
 </html>
