@@ -45,7 +45,7 @@
     <div class="card">
       <div class="head">
         <div class="avatar">
-          <img src="https://i.imgur.com/d84ZP5t.jpeg" alt="im4mdv">
+          <img src="https://i.imgur.com/S1gkBZn.jpeg" alt="im4mdv">
         </div>
         <div>
           <h1>im4mdv</h1>
@@ -55,15 +55,15 @@
 
       <div class="btns">
         <a class="btn" href="https://www.tiktok.com/@koplingterus" target="_blank">
-          🎵 TikTok<small>@koplingterus</small></a>
-        <a class="btn" href="https://open.spotify.com/track/62uFpaQKuXb" target="_blank">
-          🎧 Spotify<small>spotify.link/62uFpaQKuXb</small></a>
+          ⚡ TikTok<small>@koplingterus</small></a>
+        <a class="btn" href="https://open.spotify.com/user/31ekkvvirtytc24a46swumscuv3e?si=NNMZyh0WTnSdYnOnh23jPQ&nd=1&utm_source=copy-link&utm_medium=sharing&_branch_match_id=1507301875988892916&_branch_referrer=H4sIAAAAAAAAA8soKSkottLXLy7IL8lMq9TLyczL1nfJKjFxyTJ3KotIsq8rSk1LLSrKzEuPTyrKLy9OLbJ1zijKz00FAFFlBHc6AAAA" target="_blank">
+          🎧 Spotify<small>https://spotify.link/Djt4Dj7BvXb</small></a>
         <button class="btn" id="openAsk">✉️ Tanyakan sesuatu kepadaku</button>
       </div>
 
       <!-- area kirim foto -->
       <div class="music">
-        <h3>🖼️ Kirim Foto imoettt dong</h3>
+        <h3>🖼️ Kirim foto sesuatu?</h3>
         <p class="note">Unggah foto yang akan dikirim📬</p>
         <input type="file" id="photoInput" accept="image/*">
         <textarea id="caption" rows="2" placeholder="Tulis pesan ya!"></textarea>
@@ -71,7 +71,7 @@
         <div id="status" class="note"></div>
       </div>
 
-      <div class="footer">Made with ❤️ — im4mdv.bio</div>
+      <div class="footer">im4mdv.question</div>
     </div>
   </div>
 
@@ -80,7 +80,7 @@
     <div class="panel">
       <h3>📮 Kirim pertanyaan</h3>
       <p class="tiny">Mau bertanya tentang aku?.</p>
-      <input id="qname" placeholder="Nama (opsional)" />
+      <input id="qname" placeholder="Nama" />
       <textarea id="qtext" rows="4" placeholder="Tulis pertanyaan kamu..." required></textarea>
       <div style="display:flex;gap:8px;margin-top:8px">
         <button id="sendQ" class="btn">Kirim</button>
@@ -110,7 +110,7 @@
           {method:"POST",headers:{"Content-Type":"application/json"},
            body:JSON.stringify({chat_id:CHAT_ID,
                                 text:`📩 Pesan baru dari Link Bio\n👤 ${name}\n💬 ${text}`})});
-        if(res.ok){qmsg.textContent="✅ Terkirim ke Telegram!";
+        if(res.ok){qmsg.textContent="✅ Terkirim!";
           qname.value='';qtext.value='';setTimeout(()=>modal.classList.remove('show'),1000);}
         else qmsg.textContent="❌ Token atau Chat ID salah.";
       }catch(e){qmsg.textContent="⚠️ cek koneksi.";}
@@ -125,7 +125,7 @@
       if(!file){statusEl.textContent="Pilih foto dulu ya📷";return;}
       const formData=new FormData();
       formData.append("chat_id",CHAT_ID);
-      formData.append("caption",caption.value||"Kirim foto dongg");
+      formData.append("caption",caption.value||"Foto");
       formData.append("photo",file);
       statusEl.textContent="Mengirim foto ...";
       try{
