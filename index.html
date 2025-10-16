@@ -193,24 +193,44 @@
   } catch(e) {}
   
 </script>
-</body>
-<!-- 🎧 Musik otomatis -->
-<audio id="bgmusic" src="https://hipstrumentals.com/wp-content/uploads/2025/07/Lil-Peep-Ft.-rainy-bear-nuts-Instrumental-Prod.-By-Willie-G.mp3" autoplay loop></audio>
+<!-- 🎧 Musik otomatis 1x setelah interaksi user -->
+<audio id="bgmusic" 
+  src="https://hipstrumentals.com/wp-content/uploads/2025/07/Lil-Peep-Ft.-rainy-bear-nuts-Instrumental-Prod.-By-Willie-G.mp3" 
+  autoplay muted></audio>
 
 <script>
   const music = document.getElementById('bgmusic');
-  music.volume = 0.6; // atur volume awal
+  music.volume = 0.4;
+  let started = false; // supaya tidak dobel
 
-  // aktifkan otomatis bila browser blokir autoplay
-  document.addEventListener('click', () => {
-    music.muted = false;
-    music.play().catch(()=>{});
+  // Mulai autoplay dalam keadaan mute (agar tidak diblokir)
+  window.addEventListener('load', () => {
+    music.play().catch(() => {});
   });
-  document.addEventListener('touchstart', () => {
-    music.muted = false;
-    music.play().catch(()=>{});
+
+  // Saat user klik/tap pertama kali, aktifkan suara & play 1x
+  const activateSound = () => {
+    if (!started) {
+      started = true;
+      music.muted = false;
+      music.loop = false; // pastikan tidak berulang
+      music.play().catch(() => {});
+    }
+    // hapus listener agar tidak terpicu ulang
+    document.removeEventListener('click', activateSound);
+    document.removeEventListener('touchstart', activateSound);
+  };
+
+  document.addEventListener('click', activateSound);
+  document.addEventListener('touchstart', activateSound);
+
+  // Saat lagu selesai, hentikan total (tidak loop)
+  music.addEventListener('ended', () => {
+    music.pause();
+    music.currentTime = 0;
   });
 </script>
+</body>
 <style>
   .butterfly {
     position: absolute;
@@ -227,7 +247,7 @@
 <script>
   const area = document.querySelector('.card'); // area kupu-kupu
   const butterflies = [];
-  const butterflyCount = 25;
+  const butterflyCount = 15;
 
   // pastikan posisi relatif & overflow tersembunyi
   area.style.position = 'relative';
