@@ -193,41 +193,38 @@
   } catch(e) {}
   
 </script>
-<!-- 🎧 Musik otomatis 1x setelah interaksi user -->
-<audio id="bgmusic" 
-  src="https://hipstrumentals.com/wp-content/uploads/2025/07/Lil-Peep-Ft.-rainy-bear-nuts-Instrumental-Prod.-By-Willie-G.mp3" 
-  autoplay muted></audio>
+<!-- 🎧 Musik otomatis sekali -->
+<audio id="bgmusic"
+  src="https://hipstrumentals.com/wp-content/uploads/2025/07/Lil-Peep-Ft.-rainy-bear-nuts-Instrumental-Prod.-By-Willie-G.mp3"
+  preload="auto"></audio>
+
+<!-- Area klik transparan di seluruh halaman -->
+<div id="musicTrigger"
+     style="position:fixed;inset:0;z-index:9999;background:transparent;cursor:pointer;">
+</div>
 
 <script>
   const music = document.getElementById('bgmusic');
+  const trigger = document.getElementById('musicTrigger');
+  let started = false;
+
   music.volume = 0.4;
-  let started = false; // supaya tidak dobel
+  music.loop = false;
 
-  // Mulai autoplay dalam keadaan mute (agar tidak diblokir)
-  window.addEventListener('load', () => {
-    music.play().catch(() => {});
-  });
-
-  // Saat user klik/tap pertama kali, aktifkan suara & play 1x
-  const activateSound = () => {
+  trigger.onclick = () => {
     if (!started) {
       started = true;
-      music.muted = false;
-      music.loop = false; // pastikan tidak berulang
-      music.play().catch(() => {});
+      music.play().then(() => {
+        console.log("🎵 Musik diputar sekali");
+      }).catch(err => console.log("Autoplay diblokir:", err));
     }
-    // hapus listener agar tidak terpicu ulang
-    document.removeEventListener('click', activateSound);
-    document.removeEventListener('touchstart', activateSound);
+    trigger.remove(); // hilangkan overlay setelah berhasil
   };
 
-  document.addEventListener('click', activateSound);
-  document.addEventListener('touchstart', activateSound);
-
-  // Saat lagu selesai, hentikan total (tidak loop)
   music.addEventListener('ended', () => {
     music.pause();
     music.currentTime = 0;
+    console.log("🎶 Musik selesai, berhenti total");
   });
 </script>
 
