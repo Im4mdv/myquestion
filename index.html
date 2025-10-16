@@ -193,41 +193,78 @@
   } catch(e) {}
   
 </script>
-<!-- 🎧 Musik otomatis sekali -->
+<!-- 🎧 Musik otomatis dengan fallback -->
 <audio id="bgmusic"
   src="https://hipstrumentals.com/wp-content/uploads/2025/07/Lil-Peep-Ft.-rainy-bear-nuts-Instrumental-Prod.-By-Willie-G.mp3"
-  preload="auto"></audio>
+  preload="auto"
+  muted></audio>
 
-<!-- Area klik transparan di seluruh halaman -->
-<div id="musicTrigger"
-     style="position:fixed;inset:0;z-index:9999;background:transparent;cursor:pointer;">
-</div>
+<!-- Tombol fallback -->
+<button id="musicButton"
+  style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(30, 144, 255, 0.3);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    display: none;
+    z-index: 9999;">
+  🎧 Tap untuk mulai musik
+</button>
 
 <script>
   const music = document.getElementById('bgmusic');
-  const trigger = document.getElementById('musicTrigger');
+  const btn = document.getElementById('musicButton');
   let started = false;
 
   music.volume = 0.4;
   music.loop = false;
 
-  trigger.onclick = () => {
-    if (!started) {
-      started = true;
-      music.play().then(() => {
-        console.log("🎵 Musik diputar sekali");
-      }).catch(err => console.log("Autoplay diblokir:", err));
-    }
-    trigger.remove(); // hilangkan overlay setelah berhasil
-  };
+  // fungsi play musik
+  async function startMusic() {
+    if (started) return;
+    started = true;
+    music.muted = false;
 
+    try {
+      await music.play();
+      console.log("🎶 Musik berhasil diputar");
+      btn.style.display = 'none';
+    } catch (err) {
+      console.warn("Autoplay gagal, tampilkan tombol:", err);
+      btn.style.display = 'block';
+    }
+  }
+
+  // coba autoplay dengan interaksi pertama
+  document.addEventListener('click', startMusic, { once: true });
+  document.addEventListener('touchstart', startMusic, { once: true });
+  document.addEventListener('keydown', startMusic, { once: true });
+
+  // kalau autoplay gagal → user bisa tekan tombol manual
+  btn.addEventListener('click', async () => {
+    try {
+      await music.play();
+      btn.style.display = 'none';
+      console.log("🎧 Musik dimulai manual via tombol");
+    } catch (err) {
+      alert("Gagal memutar musik: " + err.message);
+    }
+  });
+
+  // berhenti total setelah selesai
   music.addEventListener('ended', () => {
     music.pause();
     music.currentTime = 0;
-    console.log("🎶 Musik selesai, berhenti total");
+    console.log("🎵 Musik selesai, tidak diulang");
   });
 </script>
-
 </body>
 <style>
   .butterfly {
@@ -239,22 +276,26 @@
     user-select: none;
     z-index: 9;
     will-change: transform;
-    transition: transform 0.2s ease;
+    transition: transform 0.1s ease;
   }
 </style>
-<script>
-  const area = document.querySelector('.card'); // area kupu-kupu
-  const butterflies = [];
-  const butterflyCount = 15;
 
-  // pastikan posisi relatif & overflow tersembunyi
+<script>
+  const area = document.querySelector('.card');
+  const butterflies = [];
+  const butterflyCount = 25;
+  let holdActive = false;
+  let holdX = 0;
+  let holdY = 0;
+
+  // pastikan card siap sebagai area gerak kupu
   area.style.position = 'relative';
   area.style.overflow = 'hidden';
 
-  // gunakan ukuran card sebagai batas dunia kupu
+  // fungsi ambil ukuran card
   function getBounds() {
-    const r = area.getBoundingClientRect();
-    return { width: area.clientWidth, height: area.clientHeight, left: r.left, top: r.top };
+    const rect = area.getBoundingClientRect();
+    return { width: area.clientWidth, height: area.clientHeight, left: rect.left, top: rect.top };
   }
 
   const bounds = getBounds();
@@ -273,74 +314,87 @@
       vx: (Math.random() - 0.5) * 1.4,
       vy: (Math.random() - 0.5) * 1.4,
       size: 16 + Math.random() * 10,
-      targetX: null,
-      targetY: null
     });
 
     b.style.fontSize = butterflies[i].size + "px";
   }
 
+  // animasi kupu-kupu
   function moveButterflies() {
     const rect = getBounds();
+
     butterflies.forEach(b => {
-      // gerak ke target kalau ada
-      if (b.targetX !== null && b.targetY !== null) {
-        const dx = b.targetX - b.x;
-        const dy = b.targetY - b.y;
-        b.vx += dx * 0.001;
-        b.vy += dy * 0.001;
+      // saat ditekan, kupu lebih cepat ke arah titik
+      if (holdActive) {
+        const dx = holdX - b.x;
+        const dy = holdY - b.y;
+        b.vx += dx * 0.006; // makin responsif
+        b.vy += dy * 0.006;
       }
 
       b.x += b.vx;
       b.y += b.vy;
 
-      // pantul dalam batas card
+      // pantulan di tepi area card
       if (b.x <= 0 || b.x >= rect.width - b.size) b.vx *= -1;
       if (b.y <= 0 || b.y >= rect.height - b.size) b.vy *= -1;
 
-      // variasi kecil supaya alami
-      b.vx += (Math.random() - 0.5) * 0.03;
-      b.vy += (Math.random() - 0.5) * 0.03;
-      b.vx = Math.max(-1.2, Math.min(1.2, b.vx));
-      b.vy = Math.max(-1.2, Math.min(1.2, b.vy));
+      // variasi acak halus saat tidak ditekan
+      if (!holdActive) {
+        b.vx += (Math.random() - 0.5) * 0.03;
+        b.vy += (Math.random() - 0.5) * 0.03;
+      }
+
+      // batas kecepatan biar tidak terlalu cepat
+      b.vx = Math.max(-1.8, Math.min(1.8, b.vx));
+      b.vy = Math.max(-1.8, Math.min(1.8, b.vy));
 
       b.el.style.left = b.x + "px";
       b.el.style.top = b.y + "px";
       b.el.style.transform = `rotate(${(b.x + b.y) / 3}deg)`;
     });
+
     requestAnimationFrame(moveButterflies);
   }
   moveButterflies();
 
-  // fungsi saat klik/tap
-  const setTarget = (clientX, clientY) => {
+  // fungsi saat menahan klik/tap
+  const startHold = (x, y) => {
     const rect = getBounds();
-    const tx = clientX - rect.left;
-    const ty = clientY - rect.top;
-    butterflies.forEach(b => {
-      b.targetX = Math.max(0, Math.min(rect.width, tx));
-      b.targetY = Math.max(0, Math.min(rect.height, ty));
-    });
-    // reset setelah 3 detik
-    setTimeout(() => {
-      butterflies.forEach(b => { b.targetX = null; b.targetY = null; });
-    }, 3000);
+    holdActive = true;
+    holdX = x - rect.left;
+    holdY = y - rect.top;
   };
 
-  area.addEventListener('click', e => setTarget(e.clientX, e.clientY));
+  const moveHold = (x, y) => {
+    if (holdActive) {
+      const rect = getBounds();
+      holdX = x - rect.left;
+      holdY = y - rect.top;
+    }
+  };
+
+  const endHold = () => {
+    holdActive = false;
+  };
+
+  // event mouse
+  area.addEventListener('mousedown', e => startHold(e.clientX, e.clientY));
+  area.addEventListener('mousemove', e => moveHold(e.clientX, e.clientY));
+  area.addEventListener('mouseup', endHold);
+  area.addEventListener('mouseleave', endHold);
+
+  // event touch (HP)
   area.addEventListener('touchstart', e => {
     const t = e.touches[0];
-    setTarget(t.clientX, t.clientY);
+    startHold(t.clientX, t.clientY);
   });
-
-  // sesuaikan bila ukuran card berubah (responsif)
-  window.addEventListener('resize', () => {
-    const r = getBounds();
-    butterflies.forEach(b => {
-      b.x = Math.min(b.x, r.width - b.size);
-      b.y = Math.min(b.y, r.height - b.size);
-    });
+  area.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    moveHold(t.clientX, t.clientY);
   });
+  area.addEventListener('touchend', endHold);
+  area.addEventListener('touchcancel', endHold);
 </script>
 
 </html>
