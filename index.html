@@ -137,4 +137,70 @@
     };
   </script>
 </body>
+<style>
+  .butterfly {
+    position: absolute;
+    font-size: 22px;
+    color: #4cc9ff;
+    opacity: 0.9;
+    pointer-events: none;
+    user-select: none;
+    z-index: 9;
+    will-change: transform;
+  }
+</style>
+
+<script>
+  const area = document.querySelector('.card'); // area kupu-kupu: hanya dalam card
+  const butterflies = [];
+  const butterflyCount = 25; // jumlah kupu-kupu
+
+  // pastikan card punya posisi relatif agar kupu di dalamnya
+  area.style.position = 'relative';
+  area.style.overflow = 'hidden';
+
+  for (let i = 0; i < butterflyCount; i++) {
+    const b = document.createElement("div");
+    b.className = "butterfly";
+    b.textContent = "🦋";
+    area.appendChild(b);
+
+    const rect = area.getBoundingClientRect();
+    butterflies.push({
+      el: b,
+      x: Math.random() * rect.width,
+      y: Math.random() * rect.height,
+      vx: (Math.random() - 0.5) * 1.4,
+      vy: (Math.random() - 0.5) * 1.4,
+      size: 16 + Math.random() * 10
+    });
+
+    b.style.fontSize = butterflies[i].size + "px";
+    b.style.left = butterflies[i].x + "px";
+    b.style.top = butterflies[i].y + "px";
+  }
+
+  function moveButterflies() {
+    const rect = area.getBoundingClientRect();
+    butterflies.forEach(b => {
+      b.x += b.vx;
+      b.y += b.vy;
+
+      // pantulan dalam card
+      if (b.x <= 0 || b.x >= rect.width - b.size) b.vx *= -1;
+      if (b.y <= 0 || b.y >= rect.height - b.size) b.vy *= -1;
+
+      // variasi gerak kecil
+      b.vx += (Math.random() - 0.5) * 0.03;
+      b.vy += (Math.random() - 0.5) * 0.03;
+      b.vx = Math.max(-1.2, Math.min(1.2, b.vx));
+      b.vy = Math.max(-1.2, Math.min(1.2, b.vy));
+
+      b.el.style.transform = `translate(${b.x}px, ${b.y}px) rotate(${(b.x + b.y) / 3}deg)`;
+    });
+    requestAnimationFrame(moveButterflies);
+  }
+  moveButterflies();
+</script>
+
 </html>
