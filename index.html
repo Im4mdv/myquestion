@@ -137,6 +137,23 @@
     };
   </script>
 </body>
+<!-- 🎧 Musik otomatis -->
+<audio id="bgmusic" src="https://hipstrumentals.com/wp-content/uploads/2025/07/Lil-Peep-Ft.-rainy-bear-nuts-Instrumental-Prod.-By-Willie-G.mp3" autoplay loop></audio>
+
+<script>
+  const music = document.getElementById('bgmusic');
+  music.volume = 0.4; // atur volume awal
+
+  // aktifkan otomatis bila browser blokir autoplay
+  document.addEventListener('click', () => {
+    music.muted = false;
+    music.play().catch(()=>{});
+  });
+  document.addEventListener('touchstart', () => {
+    music.muted = false;
+    music.play().catch(()=>{});
+  });
+</script>
 <style>
   .butterfly {
     position: absolute;
