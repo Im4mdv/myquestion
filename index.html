@@ -448,5 +448,20 @@
 })();
 </script>
 
+<script>
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  if (ua.includes("Instagram") || ua.includes("FBAV") || ua.includes("FBAN")) {
+    const warn = document.createElement("div");
+    warn.textContent = "buka lewat Chrome";
+    warn.style.cssText = `
+      position: fixed; top: 0; left: 0; width: 100%;
+      background: #ffcd4c; color: #000; padding: 10px;
+      text-align: center; font-weight: 600; z-index: 9999;
+      font-family: Inter, system-ui, sans-serif;
+    `;
+    document.body.appendChild(warn);
+  }
+</script>
+
 </body>
 </html>
