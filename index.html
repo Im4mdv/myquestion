@@ -306,7 +306,7 @@
   (function(){
     const area = document.querySelector('.card');
     const butterflies = [];
-    const butterflyCount = 5;
+    const butterflyCount = 7;
     let holdActive = false;
     let holdX = 0;
     let holdY = 0;
@@ -352,6 +352,92 @@
     area.addEventListener('touchcancel', endHold);
   })();
   </script>
+<!-- === Live Mode Status (Smooth Fade Aura Glow + Safe Insert Fix) === -->
+<script>
+(async function(){
+  // Cari elemen yang mengandung teks "Sharing vibes & question"
+  const titleEl = [...document.querySelectorAll('*')]
+    .find(e => /sharing vibes & question/i.test(e.textContent));
+  if(!titleEl) return;
+
+  // Tentukan tempat penyisipan yang aman (hindari <html> / <body>)
+  const parentEl = titleEl.parentElement || document.body;
+
+  // Buat elemen status baru
+  const statusBox = document.createElement("div");
+  statusBox.id = "liveModeStatus";
+  statusBox.style.cssText = `
+    margin-top:8px;
+    text-align:center;
+    font-size:14px;
+    font-family:'Poppins', monospace;
+    color:#cfcfcf;
+    opacity:0;
+    transition:opacity 1s ease, text-shadow 1s ease, color 1s ease;
+    letter-spacing:0.5px;
+    user-select:none;
+  `;
+
+  // Sisipkan di bawah teks target
+  if (["HTML","BODY"].includes(titleEl.tagName)) {
+    parentEl.appendChild(statusBox);
+  } else {
+    titleEl.insertAdjacentElement("afterend", statusBox);
+  }
+
+  // Tambahkan animasi aura glow
+  const style = document.createElement("style");
+  style.textContent = `
+  @keyframes auraGlow {
+    0% { text-shadow: 0 0 6px rgba(255,255,255,0.3), 0 0 12px rgba(255,255,255,0.1); }
+    50% { text-shadow: 0 0 18px rgba(255,255,255,0.7), 0 0 30px rgba(255,255,255,0.4); }
+    100% { text-shadow: 0 0 8px rgba(255,255,255,0.4), 0 0 16px rgba(255,255,255,0.2); }
+  }
+  #liveModeStatus.active {
+    animation: auraGlow 3s infinite ease-in-out;
+  }`;
+  document.head.appendChild(style);
+
+  // Fungsi ambil status dari Cloudflare Worker
+  async function updateStatus(){
+    try {
+      const res = await fetch("https://sybau.imamadevera.workers.dev/status", {cache:"no-store"});
+      const data = await res.json();
+      const time = new Date(data.time);
+      const diff = (Date.now() - time.getTime()) / 60000;
+      const ago = diff < 1 ? "baru saja" : `${Math.floor(diff)}m ago`;
+
+      const text = `${data.status} (${ago})`;
+
+      // Smooth transition setiap status berubah
+      if (statusBox.textContent !== text) {
+        statusBox.style.opacity = 0;
+        setTimeout(() => {
+          statusBox.textContent = text;
+          statusBox.style.opacity = 1;
+          statusBox.classList.add("active");
+
+          // Warna sesuai status
+          let color = "#fff";
+          if (data.status.includes("Online")) color = "#00ffb3";
+          else if (data.status.includes("Listening")) color = "#4cc9ff";
+          else if (data.status.includes("Offline")) color = "#ff7ca3";
+          statusBox.style.color = color;
+          statusBox.style.textShadow = `0 0 12px ${color}, 0 0 24px ${color}`;
+        }, 300);
+      }
+    } catch {
+      statusBox.textContent = "⚠️ gagal memuat status";
+      statusBox.style.color = "#ff7979";
+      statusBox.style.opacity = 1;
+    }
+  }
+
+  // Jalankan pertama kali & refresh setiap 6 detik
+  updateStatus();
+  setInterval(updateStatus, 6000);
+})();
+</script>
 
 </body>
 </html>
